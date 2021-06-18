@@ -1,62 +1,68 @@
-import React from 'react';
+import React,{useState,FormEvent} from 'react';
 import { Title ,Form ,Repositories} from './styles';
 import {FiChevronRight} from 'react-icons/fi';
 
 import logoImg from '../../assets/logo.svg';
+import api from'../../services/api';
+import Repository from '../Repository';
+
+interface Repository{
+    full_name: string;
+    description: string;
+    owner:{
+        login:string;
+        avatar_url:string;
+    }
+
+
+
+}
 
 const Dashboard:React.FC = () => {
+    const [newRepo,setNewRepo] = useState('');
+    const [repositories,setRepoitories] = useState<Repository[]>([]);
+    async function handleAddRepository(event: FormEvent<HTMLFormElement>): Promise<void>{
+        //adição de um novo repositório
+        event.preventDefault();
+        console.log(newRepo)
 
+        const response =  await api.get<Repository>(`repos/${newRepo}`);
+        console.log(response.data);
+        const repository = response.data;
 
+        setRepoitories([... repositories,repository]);
+        setNewRepo('');
+    }
     return(
         <>
         <img src={logoImg} alt="Github Explore"/>
         <Title>Explore repositorios no Github </Title>
-        <Form action="">
-            
-            <input placeholder= "Digite o nome do repositório"></input>
+        <Form onSubmit={handleAddRepository}>
+   
+            <input 
+            value={newRepo}
+            onChange={e=> setNewRepo(e.target.value)}
+            placeholder= "Digite o nome do repositório"></input>
             <button type="submit"> Pesquisar </button>
             </Form>
 
-        <Repositories>
-        <a href="teste">
+        <Repositories>      
+        {repositories.map(repository => (
+        <a key={repository.full_name} href="teste">
             <img
-            src="https://avatars.githubusercontent.com/u/7657883?v=4"
-            alt="Pedro Cardoso"
+            src={repository.owner.avatar_url}
+            alt={repository.owner.login}
             />
             <div>
-                <strong>Template Absam</strong>
-                <p>Template de exemplo para github actions </p>
+                <strong>{repository.full_name}</strong>
+                <p>{repository.description}</p>
             </div>
             <FiChevronRight size={20} />
 
         </a>
 
-              <a href="teste">
-            <img
-            src="https://avatars.githubusercontent.com/u/7657883?v=4"
-            alt="Pedro Cardoso"
-            />
-            <div>
-                <strong>Template Absam</strong>
-                <p>Template de exemplo para github actions </p>
-            </div>
-            <FiChevronRight size={20} />
-
-        </a>
-        
-              <a href="teste">
-            <img
-            src="https://avatars.githubusercontent.com/u/7657883?v=4"
-            alt="Pedro Cardoso"
-            />
-            <div>
-                <strong>Template Absam</strong>
-                <p>Template de exemplo para github actions </p>
-            </div>
-            <FiChevronRight size={20} />
-
-        </a>
-        </Repositories>
+        ))}
+       </Repositories>
         
         </>
     ) 
